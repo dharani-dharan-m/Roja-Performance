@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roja Performance - Tyre Shop Management</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-1: #070707;
+            --bg-2: #141414;
+            --panel: rgba(255, 255, 255, 0.04);
+            --line: rgba(255, 255, 255, 0.16);
+            --text-main: #f5f5f5;
+            --text-muted: #b6b6b6;
+            --accent: #d4001f;
+            --accent-2: #ff3647;
+            --ok: #39d59f;
+            --bad: #ff6d6d;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Manrope, sans-serif;
+            min-height: 100vh;
+            color: var(--text-main);
+            padding: 24px;
+            background:
+                radial-gradient(74rem 44rem at 0% -16%, rgba(212, 0, 31, 0.24) 0%, transparent 55%),
+                radial-gradient(54rem 30rem at 100% 0%, rgba(212, 0, 31, 0.16) 0%, transparent 52%),
+                linear-gradient(145deg, var(--bg-1), #0e0e0e 48%, var(--bg-2));
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                -30deg,
+                transparent 0 42px,
+                rgba(255, 255, 255, 0.02) 42px 44px
+            );
+            mix-blend-mode: soft-light;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            background: linear-gradient(150deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015));
+            backdrop-filter: blur(6px);
+            box-shadow: 0 35px 85px rgba(0, 0, 0, 0.6);
+            animation: fadeInUp 0.65s ease both;
+        }
+
+        .header {
+            padding: 34px 34px 26px;
+            border-bottom: 1px solid var(--line);
+            position: relative;
+            background:
+                linear-gradient(112deg, rgba(212, 0, 31, 0.4), rgba(212, 0, 31, 0.1) 34%, transparent 70%),
+                linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+        }
+
+        .header::after {
+            content: "";
+            position: absolute;
+            left: -30%;
+            top: 0;
+            width: 24%;
+            height: 100%;
+            background: linear-gradient(100deg, transparent, rgba(255,255,255,0.12), transparent);
+            transform: skewX(-18deg);
+            animation: sheen 6s ease-in-out infinite;
+        }
+
+        .header h1 {
+            font-family: "Barlow Condensed", sans-serif;
+            font-size: clamp(1.8rem, 3.2vw, 2.7rem);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            max-width: 70ch;
+            line-height: 1.5;
+        }
+
+        .nav {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            border-bottom: 1px solid var(--line);
+            background: rgba(0, 0, 0, 0.45);
+        }
+
+        .nav-item {
+            text-align: center;
+            padding: 15px 8px;
+            font-family: "Barlow Condensed", sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border-right: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .nav-item:last-child { border-right: none; }
+
+        .nav-item:hover { color: var(--text-main); background: rgba(255,255,255,0.08); }
+
+        .nav-item.active {
+            color: #ffffff;
+            background: linear-gradient(90deg, var(--accent), #9f0017);
+            box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.32);
+        }
+
+        .content { padding: 28px; }
+
+        .section { display: none; animation: fadeInUp 0.35s ease; }
+        .section.active { display: block; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-family: "Barlow Condensed", sans-serif;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            font-size: 1.6rem;
+        }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            color: #e7eefc;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.28);
+            background: rgba(255,255,255,0.07);
+            border-radius: 10px;
+            color: var(--text-main);
+            padding: 11px 12px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(255,130,85,0.2);
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .button {
+            border: none;
+            border-radius: 10px;
+            padding: 11px 18px;
+            font-family: "Barlow Condensed", sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .button:hover { transform: translateY(-2px); }
+
+        .button-primary {
+            color: #ffffff;
+            background: linear-gradient(90deg, var(--accent), #9d0016);
+            box-shadow: 0 10px 22px rgba(212,0,31,0.35);
+        }
+
+        .button-secondary {
+            color: #eef4ff;
+            background: rgba(255,255,255,0.16);
+            border: 1px solid rgba(255,255,255,0.28);
+        }
+
+        .button-danger {
+            color: #fff;
+            background: linear-gradient(90deg, #6c000f, #c1001d);
+            box-shadow: 0 10px 20px rgba(193,0,29,0.32);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .table th, .table td {
+            padding: 11px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.14);
+            text-align: left;
+            color: #d2dced;
+        }
+
+        .table th {
+            color: #edf3ff;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.8rem;
+            background: rgba(212,0,31,0.18);
+        }
+
+        .table tbody tr:hover { background: rgba(255,255,255,0.06); }
+
+        .alert {
+            padding: 11px 13px;
+            margin: 12px 0;
+            border-radius: 10px;
+            border: 1px solid;
+            font-weight: 700;
+        }
+        .alert-success { background: rgba(57,213,159,0.14); color: #baf6df; border-color: rgba(57,213,159,0.45); }
+        .alert-error { background: rgba(255,109,109,0.18); color: #ffd2d2; border-color: rgba(255,109,109,0.45); }
+        .alert-info { background: rgba(255,209,102,0.14); color: #ffe9b3; border-color: rgba(255,209,102,0.45); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.82);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: linear-gradient(160deg, #181818, #111111 60%, #0b0b0b);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            max-width: 560px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: auto;
+            padding: 24px;
+            box-shadow: 0 24px 65px rgba(0, 0, 0, 0.42);
+            animation: popIn 0.2s ease;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.97) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            font-family: "Barlow Condensed", sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 1.3rem;
+            margin-bottom: 14px;
+        }
+
+        @keyframes sheen {
+            0% { transform: translateX(0) skewX(-18deg); opacity: 0; }
+            12% { opacity: 1; }
+            24% { transform: translateX(580%) skewX(-18deg); opacity: 0; }
+            100% { transform: translateX(580%) skewX(-18deg); opacity: 0; }
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 800px) {
+            body { padding: 14px; }
+            .content { padding: 18px 12px; }
+            .form-row { grid-template-columns: 1fr; }
+            .nav { grid-template-columns: 1fr 1fr; }
+            .header h1 { font-size: 1.7rem; }
+            .table { display: block; overflow-x: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏎️ Roja Performance</h1>
+            <p>Premium Tyre Shop Management System</p>
+        </div>
+        
+        <div class="nav">
+            <div class="nav-item active" onclick="switchTab('dashboard', this)">Dashboard</div>
+            <div class="nav-item" onclick="switchTab('products', this)">Products</div>
+            <div class="nav-item" onclick="switchTab('customers', this)">Customers</div>
+            <div class="nav-item" onclick="switchTab('orders', this)">Orders</div>
+            <div class="nav-item" onclick="switchTab('users', this)">Users</div>
+        </div>
+        
+        <div class="content">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section active">
+                <h2>Dashboard</h2>
+                <div style="margin-top: 20px;">
+                    <p>Welcome to Roja Performance Management System!</p>
+                    <p style="margin-top: 10px;">This application provides a complete solution for managing your tyre shop including:</p>
+                    <ul style="margin-top: 10px; margin-left: 20px;">
+                        <li>Product Inventory Management</li>
+                        <li>Customer Relationship Management</li>
+                        <li>Order Processing and Tracking</li>
+                        <li>User Management</li>
+                    </ul>
+                    <p style="margin-top: 20px; color: #666;">API Base URL: <code>http://localhost:8080/api</code></p>
+                </div>
+            </div>
+            
+            <!-- Products Section -->
+            <div id="products" class="section">
+                <h2>Products Management</h2>
+                
+                <button class="button button-primary" onclick="openProductModal()">Add New Product</button>
+                
+                <div id="productAlert"></div>
+                
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Brand</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTable"></tbody>
+                </table>
+                
+                <div id="productModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">Product Form</div>
+                        <form id="productForm">
+                            <input type="hidden" id="productId">
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="text" id="productName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea id="productDescription"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Brand</label>
+                                    <input type="text" id="productBrand" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Type</label>
+                                    <input type="text" id="productType" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Price</label>
+                                    <input type="number" id="productPrice" required step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label>Quantity</label>
+                                    <input type="number" id="productQuantity" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Size</label>
+                                <input type="text" id="productSize" placeholder="e.g., 225/45R17">
+                            </div>
+                            <div class="action-buttons">
+                                <button type="button" class="button button-secondary" onclick="closeProductModal()">Cancel</button>
+                                <button type="submit" class="button button-primary">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Customers Section -->
+            <div id="customers" class="section">
+                <h2>Customers Management</h2>
+                
+                <button class="button button-primary" onclick="openCustomerModal()">Add New Customer</button>
+                
+                <div id="customerAlert"></div>
+                
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>City</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerTable"></tbody>
+                </table>
+                
+                <div id="customerModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">Customer Form</div>
+                        <form id="customerForm">
+                            <input type="hidden" id="customerId">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>First Name</label>
+                                    <input type="text" id="customerFirstName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Last Name</label>
+                                    <input type="text" id="customerLastName" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="customerEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="tel" id="customerPhone" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Address</label>
+                                <input type="text" id="customerAddress">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>City</label>
+                                    <input type="text" id="customerCity">
+                                </div>
+                                <div class="form-group">
+                                    <label>State</label>
+                                    <input type="text" id="customerState">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Zip Code</label>
+                                <input type="text" id="customerZipCode">
+                            </div>
+                            <div class="action-buttons">
+                                <button type="button" class="button button-secondary" onclick="closeCustomerModal()">Cancel</button>
+                                <button type="submit" class="button button-primary">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Orders Section -->
+            <div id="orders" class="section">
+                <h2>Orders Management</h2>
+                
+                <button class="button button-primary" onclick="openOrderModal()">Create New Order</button>
+                
+                <div id="orderAlert"></div>
+                
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Total Price</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTable"></tbody>
+                </table>
+                
+                <div id="orderModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">Order Form</div>
+                        <form id="orderForm">
+                            <input type="hidden" id="orderId">
+                            <div class="form-group">
+                                <label>Customer</label>
+                                <select id="orderCustomerId" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Product</label>
+                                <select id="orderProductId" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Quantity</label>
+                                <input type="number" id="orderQuantity" required min="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Total Price</label>
+                                <input type="number" id="orderTotalPrice" required step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Shipping Address</label>
+                                <input type="text" id="orderShippingAddress">
+                            </div>
+                            <div class="action-buttons">
+                                <button type="button" class="button button-secondary" onclick="closeOrderModal()">Cancel</button>
+                                <button type="submit" class="button button-primary">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Users Section -->
+            <div id="users" class="section">
+                <h2>Users Management</h2>
+                
+                <button class="button button-primary" onclick="openUserModal()">Add New User</button>
+                
+                <div id="userAlert"></div>
+                
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Full Name</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTable"></tbody>
+                </table>
+                
+                <div id="userModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">User Form</div>
+                        <form id="userForm">
+                            <input type="hidden" id="userId">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" id="userName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="userEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Full Name</label>
+                                <input type="text" id="userFullName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" id="userPassword">
+                            </div>
+                            <div class="form-group">
+                                <label>Role</label>
+                                <select id="userRole" required>
+                                    <option value="">Select Role</option>
+                                    <option value="ADMIN">Admin</option>
+                                    <option value="MANAGER">Manager</option>
+                                    <option value="USER">User</option>
+                                </select>
+                            </div>
+                            <div class="action-buttons">
+                                <button type="button" class="button button-secondary" onclick="closeUserModal()">Cancel</button>
+                                <button type="submit" class="button button-primary">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        const REQUESTER_ROLE = localStorage.getItem('requesterRole') || 'USER';
+
+        // Tab Navigation
+        function switchTab(tabName, tabElement) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            tabElement.classList.add('active');
+
+            if (tabName === 'products') loadProducts();
+            if (tabName === 'customers') loadCustomers();
+            if (tabName === 'orders') loadOrders();
+            if (tabName === 'users') loadUsers();
+        }
+
+        // PRODUCTS
+        function loadProducts() {
+            fetch(`${API_URL}/products`)
+                .then(r => r.json())
+                .then(data => {
+                    const tbody = document.getElementById('productTable');
+                    tbody.innerHTML = data.map(p => `
+                        <tr>
+                            <td>${p.id}</td>
+                            <td>${p.name}</td>
+                            <td>${p.brand}</td>
+                            <td>₹${p.price}</td>
+                            <td>${p.quantity}</td>
+                            <td><span style="color: ${p.available ? 'green' : 'red'}">${p.available ? 'Available' : 'Unavailable'}</span></td>
+                            <td><button class="button button-secondary" onclick="editProduct(${p.id})">Edit</button>
+                                <button class="button button-danger" onclick="deleteProduct(${p.id})">Delete</button></td>
+                        </tr>
+                    `).join('');
+                });
+        }
+
+        function openProductModal() {
+            document.getElementById('productForm').reset();
+            document.getElementById('productId').value = '';
+            document.getElementById('productModal').classList.add('active');
+        }
+
+        function closeProductModal() {
+            document.getElementById('productModal').classList.remove('active');
+        }
+
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('productId').value;
+            const data = {
+                name: document.getElementById('productName').value,
+                description: document.getElementById('productDescription').value,
+                brand: document.getElementById('productBrand').value,
+                type: document.getElementById('productType').value,
+                price: parseFloat(document.getElementById('productPrice').value),
+                quantity: parseInt(document.getElementById('productQuantity').value),
+                size: document.getElementById('productSize').value,
+                available: true
+            };
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/products/${id}` : `${API_URL}/products`;
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-User-Role': REQUESTER_ROLE
+                },
+                body: JSON.stringify(data)
+            })
+            .then(r => r.json())
+            .then(() => {
+                showAlert('productAlert', 'Product saved successfully!', 'success');
+                closeProductModal();
+                loadProducts();
+            })
+            .catch(e => showAlert('productAlert', 'Error saving product', 'error'));
+        });
+
+        function editProduct(id) {
+            fetch(`${API_URL}/products/${id}`)
+                .then(r => r.json())
+                .then(p => {
+                    document.getElementById('productId').value = p.id;
+                    document.getElementById('productName').value = p.name;
+                    document.getElementById('productDescription').value = p.description || '';
+                    document.getElementById('productBrand').value = p.brand;
+                    document.getElementById('productType').value = p.type;
+                    document.getElementById('productPrice').value = p.price;
+                    document.getElementById('productQuantity').value = p.quantity;
+                    document.getElementById('productSize').value = p.size || '';
+                    document.getElementById('productModal').classList.add('active');
+                });
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Are you sure?')) {
+                fetch(`${API_URL}/products/${id}`, { method: 'DELETE' })
+                    .then(() => {
+                        showAlert('productAlert', 'Product deleted successfully!', 'success');
+                        loadProducts();
+                    })
+                    .catch(() => showAlert('productAlert', 'Error deleting product', 'error'));
+            }
+        }
+
+        // CUSTOMERS
+        function loadCustomers() {
+            fetch(`${API_URL}/customers`)
+                .then(r => r.json())
+                .then(data => {
+                    const tbody = document.getElementById('customerTable');
+                    tbody.innerHTML = data.map(c => `
+                        <tr>
+                            <td>${c.id}</td>
+                            <td>${c.firstName} ${c.lastName}</td>
+                            <td>${c.email}</td>
+                            <td>${c.phone}</td>
+                            <td>${c.city}</td>
+                            <td><span style="color: ${c.active ? 'green' : 'red'}">${c.active ? 'Active' : 'Inactive'}</span></td>
+                            <td><button class="button button-secondary" onclick="editCustomer(${c.id})">Edit</button>
+                                <button class="button button-danger" onclick="deleteCustomer(${c.id})">Delete</button></td>
+                        </tr>
+                    `).join('');
+                });
+        }
+
+        function openCustomerModal() {
+            document.getElementById('customerForm').reset();
+            document.getElementById('customerId').value = '';
+            document.getElementById('customerModal').classList.add('active');
+        }
+
+        function closeCustomerModal() {
+            document.getElementById('customerModal').classList.remove('active');
+        }
+
+        document.getElementById('customerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('customerId').value;
+            const data = {
+                firstName: document.getElementById('customerFirstName').value,
+                lastName: document.getElementById('customerLastName').value,
+                email: document.getElementById('customerEmail').value,
+                phone: document.getElementById('customerPhone').value,
+                address: document.getElementById('customerAddress').value,
+                city: document.getElementById('customerCity').value,
+                state: document.getElementById('customerState').value,
+                zipCode: document.getElementById('customerZipCode').value,
+                active: true
+            };
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/customers/${id}` : `${API_URL}/customers`;
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(r => r.json())
+            .then(() => {
+                showAlert('customerAlert', 'Customer saved successfully!', 'success');
+                closeCustomerModal();
+                loadCustomers();
+            })
+            .catch(e => showAlert('customerAlert', 'Error saving customer', 'error'));
+        });
+
+        function editCustomer(id) {
+            fetch(`${API_URL}/customers/${id}`)
+                .then(r => r.json())
+                .then(c => {
+                    document.getElementById('customerId').value = c.id;
+                    document.getElementById('customerFirstName').value = c.firstName;
+                    document.getElementById('customerLastName').value = c.lastName;
+                    document.getElementById('customerEmail').value = c.email;
+                    document.getElementById('customerPhone').value = c.phone;
+                    document.getElementById('customerAddress').value = c.address || '';
+                    document.getElementById('customerCity').value = c.city || '';
+                    document.getElementById('customerState').value = c.state || '';
+                    document.getElementById('customerZipCode').value = c.zipCode || '';
+                    document.getElementById('customerModal').classList.add('active');
+                });
+        }
+
+        function deleteCustomer(id) {
+            if (confirm('Are you sure?')) {
+                fetch(`${API_URL}/customers/${id}`, { method: 'DELETE' })
+                    .then(() => {
+                        showAlert('customerAlert', 'Customer deleted successfully!', 'success');
+                        loadCustomers();
+                    })
+                    .catch(() => showAlert('customerAlert', 'Error deleting customer', 'error'));
+            }
+        }
+
+        // ORDERS
+        function loadOrders() {
+            fetch(`${API_URL}/orders`)
+                .then(r => r.json())
+                .then(data => {
+                    const tbody = document.getElementById('orderTable');
+                    tbody.innerHTML = data.map(o => `
+                        <tr>
+                            <td>${o.id}</td>
+                            <td>${o.customer.firstName} ${o.customer.lastName}</td>
+                            <td>${o.product.name}</td>
+                            <td>${o.quantity}</td>
+                            <td>₹${o.totalPrice}</td>
+                            <td><span style="color: #667eea">${o.status}</span></td>
+                            <td><button class="button button-secondary" onclick="editOrder(${o.id})">Edit</button>
+                                <button class="button button-danger" onclick="deleteOrder(${o.id})">Delete</button></td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(() => tbody.innerHTML = '<tr><td colspan="7">Unable to load orders</td></tr>');
+        }
+
+        function openOrderModal() {
+            document.getElementById('orderForm').reset();
+            document.getElementById('orderId').value = '';
+            loadCustomersForSelect();
+            loadProductsForSelect();
+            document.getElementById('orderModal').classList.add('active');
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').classList.remove('active');
+        }
+
+        function loadCustomersForSelect() {
+            fetch(`${API_URL}/customers`)
+                .then(r => r.json())
+                .then(data => {
+                    const select = document.getElementById('orderCustomerId');
+                    select.innerHTML = data.map(c => `<option value="${c.id}">${c.firstName} ${c.lastName}</option>`).join('');
+                });
+        }
+
+        function loadProductsForSelect() {
+            fetch(`${API_URL}/products`)
+                .then(r => r.json())
+                .then(data => {
+                    const select = document.getElementById('orderProductId');
+                    select.innerHTML = data.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+                });
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('orderId').value;
+            const data = {
+                customer: { id: parseInt(document.getElementById('orderCustomerId').value) },
+                product: { id: parseInt(document.getElementById('orderProductId').value) },
+                quantity: parseInt(document.getElementById('orderQuantity').value),
+                totalPrice: parseFloat(document.getElementById('orderTotalPrice').value),
+                shippingAddress: document.getElementById('orderShippingAddress').value,
+                status: 'PENDING'
+            };
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/orders/${id}` : `${API_URL}/orders`;
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(r => r.json())
+            .then(() => {
+                showAlert('orderAlert', 'Order saved successfully!', 'success');
+                closeOrderModal();
+                loadOrders();
+            })
+            .catch(e => showAlert('orderAlert', 'Error saving order', 'error'));
+        });
+
+        function editOrder(id) {
+            fetch(`${API_URL}/orders/${id}`)
+                .then(r => r.json())
+                .then(o => {
+                    document.getElementById('orderId').value = o.id;
+                    document.getElementById('orderCustomerId').value = o.customer.id;
+                    document.getElementById('orderProductId').value = o.product.id;
+                    document.getElementById('orderQuantity').value = o.quantity;
+                    document.getElementById('orderTotalPrice').value = o.totalPrice;
+                    document.getElementById('orderShippingAddress').value = o.shippingAddress || '';
+                    loadCustomersForSelect();
+                    loadProductsForSelect();
+                    setTimeout(() => {
+                        document.getElementById('orderModal').classList.add('active');
+                    }, 100);
+                });
+        }
+
+        function deleteOrder(id) {
+            if (confirm('Are you sure?')) {
+                fetch(`${API_URL}/orders/${id}`, { method: 'DELETE' })
+                    .then(() => {
+                        showAlert('orderAlert', 'Order deleted successfully!', 'success');
+                        loadOrders();
+                    })
+                    .catch(() => showAlert('orderAlert', 'Error deleting order', 'error'));
+            }
+        }
+
+        // USERS
+        function loadUsers() {
+            fetch(`${API_URL}/users`)
+                .then(r => r.json())
+                .then(data => {
+                    const tbody = document.getElementById('userTable');
+                    tbody.innerHTML = data.map(u => `
+                        <tr>
+                            <td>${u.id}</td>
+                            <td>${u.username}</td>
+                            <td>${u.email}</td>
+                            <td>${u.fullName}</td>
+                            <td>${u.role}</td>
+                            <td><span style="color: ${u.enabled ? 'green' : 'red'}">${u.enabled ? 'Enabled' : 'Disabled'}</span></td>
+                            <td><button class="button button-secondary" onclick="editUser(${u.id})">Edit</button>
+                                <button class="button button-danger" onclick="deleteUser(${u.id})">Delete</button></td>
+                        </tr>
+                    `).join('');
+                });
+        }
+
+        function openUserModal() {
+            document.getElementById('userForm').reset();
+            document.getElementById('userId').value = '';
+            document.getElementById('userPassword').style.display = 'block';
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').classList.remove('active');
+        }
+
+        document.getElementById('userForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const id = document.getElementById('userId').value;
+            const data = {
+                username: document.getElementById('userName').value,
+                email: document.getElementById('userEmail').value,
+                fullName: document.getElementById('userFullName').value,
+                role: document.getElementById('userRole').value,
+                enabled: true
+            };
+
+            if (document.getElementById('userPassword').value) {
+                data.password = document.getElementById('userPassword').value;
+            }
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/users/${id}` : `${API_URL}/users`;
+
+            fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(r => r.text())
+            .then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch {
+                    throw new Error(text);
+                }
+            })
+            .then(() => {
+                showAlert('userAlert', 'User saved successfully!', 'success');
+                closeUserModal();
+                loadUsers();
+            })
+            .catch(e => showAlert('userAlert', 'Error saving user: ' + e.message, 'error'));
+        });
+
+        function editUser(id) {
+            fetch(`${API_URL}/users/${id}`)
+                .then(r => r.json())
+                .then(u => {
+                    document.getElementById('userId').value = u.id;
+                    document.getElementById('userName').value = u.username;
+                    document.getElementById('userEmail').value = u.email;
+                    document.getElementById('userFullName').value = u.fullName;
+                    document.getElementById('userRole').value = u.role;
+                    document.getElementById('userPassword').value = '';
+                    document.getElementById('userPassword').style.display = 'none';
+                    document.getElementById('userModal').classList.add('active');
+                });
+        }
+
+        function deleteUser(id) {
+            if (confirm('Are you sure?')) {
+                fetch(`${API_URL}/users/${id}`, { method: 'DELETE' })
+                    .then(() => {
+                        showAlert('userAlert', 'User deleted successfully!', 'success');
+                        loadUsers();
+                    })
+                    .catch(() => showAlert('userAlert', 'Error deleting user', 'error'));
+            }
+        }
+
+        // Utility
+        function showAlert(elementId, message, type) {
+            const alert = document.getElementById(elementId);
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            setTimeout(() => alert.textContent = '', 5000);
+        }
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            ['productModal', 'customerModal', 'orderModal', 'userModal'].forEach(id => {
+                const modal = document.getElementById(id);
+                if (event.target == modal) modal.classList.remove('active');
+            });
+        }
+    </script>
+</body>
+</html>
