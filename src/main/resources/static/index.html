@@ -1,0 +1,2237 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roja Performance - Tyre Shop Management</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-1: #0c0c0c;
+            --bg-2: #151515;
+            --panel: rgba(255, 255, 255, 0.05);
+            --panel-strong: rgba(255, 255, 255, 0.09);
+            --line: rgba(255, 255, 255, 0.16);
+            --text-main: #f5f5f5;
+            --text-muted: #b5b5b5;
+            --accent: #e1062b;
+            --accent-2: #ff5b4a;
+            --accent-3: #ffb347;
+            --ok: #39d59f;
+            --bad: #ff6d6d;
+            --shadow: 0 35px 85px rgba(0, 0, 0, 0.6);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Manrope, sans-serif;
+            min-height: 100vh;
+            color: var(--text-main);
+            line-height: 1.6;
+            color-scheme: dark; 
+            overflow-x: hidden;
+            padding: 22px;
+            background:
+                radial-gradient(60rem 32rem at 0% -10%, rgba(225, 6, 43, 0.22) 0%, transparent 55%),
+                radial-gradient(55rem 30rem at 100% 0%, rgba(255, 91, 74, 0.18) 0%, transparent 52%),
+                linear-gradient(150deg, var(--bg-1), #0f0f0f 48%, var(--bg-2));
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(-28deg, transparent 0 38px, rgba(255, 255, 255, 0.02) 38px 40px);
+            mix-blend-mode: soft-light;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            border-radius: 26px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            background: linear-gradient(150deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            backdrop-filter: blur(8px);
+            box-shadow: var(--shadow);
+            animation: fadeInUp 0.7s ease both;
+        }
+
+        .header {
+            padding: 34px 38px 30px;
+            border-bottom: 1px solid var(--line);
+            position: relative;
+            background:
+                linear-gradient(112deg, rgba(225, 6, 43, 0.42), rgba(225, 6, 43, 0.12) 34%, transparent 70%),
+                linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02));
+        }
+
+        .header::after {
+            content: "";
+            position: absolute;
+            left: -30%;
+            top: 0;
+            width: 24%;
+            height: 100%;
+            background: linear-gradient(100deg, transparent, rgba(255,255,255,0.16), transparent);
+            transform: skewX(-18deg);
+            animation: sheen 6s ease-in-out infinite;
+        }
+
+        .brand-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .header h1 {
+            font-family: "Oswald", sans-serif;
+            font-size: clamp(1.9rem, 3.2vw, 2.8rem);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            max-width: 75ch;
+            line-height: 1.5;
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--accent-3);
+            box-shadow: 0 0 10px rgba(255, 179, 71, 0.7);
+        }
+
+        .nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 16px 26px 18px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(0, 0, 0, 0.55);
+        }
+
+        .nav-item {
+            text-align: center;
+            padding: 10px 16px;
+            font-family: "Oswald", sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 999px;
+            background: rgba(255,255,255,0.03);
+        }
+
+        .nav-item:hover { color: var(--text-main); transform: translateY(-1px); }
+
+        .nav-item.active {
+            color: #ffffff;
+            background: linear-gradient(90deg, var(--accent), #9f0017);
+            box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.32);
+            border-color: transparent;
+        }
+
+        .content { padding: 30px; }
+
+        .section { display: none; animation: fadeInUp 0.45s ease; }
+        .section.active { display: block; }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(12, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+            transition: transform 0.25s ease, border-color 0.25s ease;
+        }
+
+        .card.strong { background: var(--panel-strong); }
+        .card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,0.28); }
+
+        .card h3 {
+            font-family: "Oswald", sans-serif;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .hero {
+            grid-column: span 7;
+            min-height: 260px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            right: -10%;
+            bottom: -20%;
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,91,74,0.4), transparent 65%);
+        }
+
+        .hero p { color: var(--text-muted); line-height: 1.6; }
+
+        .hero-actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+
+        .stat-grid { grid-column: span 5; display: grid; gap: 12px; }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.12);
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .stat strong { font-size: 1.5rem; }
+        .stat:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.3); }
+
+        .tag-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+
+        .tag {
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.06);
+        }
+
+        .muted { color: var(--text-muted); }
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin: 12px 0 16px;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 220px;
+            border: 1px solid rgba(255,255,255,0.28);
+            background: rgba(255,255,255,0.08);
+            border-radius: 999px;
+            color: #f7f7f7;
+            padding: 10px 16px;
+            font-family: inherit;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(255,130,85,0.2);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.22);
+            background: rgba(0,0,0,0.35);
+            font-size: 0.85rem;
+        }
+
+        .pill input { accent-color: var(--accent); }
+
+        .progress {
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            width: 0%;
+            transition: width 0.6s ease;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(14px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h2 {
+            font-family: "Oswald", sans-serif;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+            font-size: 1.7rem;
+        }
+
+        .form-group { margin-bottom: 14px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            color: #e7eefc;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            border: 1px solid rgba(255,255,255,0.28);
+            background: rgba(255,255,255,0.07);
+            border-radius: 10px;
+            color: #f7f7f7;
+            padding: 11px 12px;
+            font-family: inherit;
+        }
+
+        .form-group select { background-color: #1a1a1a; }
+        .form-group select option { background-color: #111111; color: #f2f2f2; }
+        .form-group select option:checked { background-color: #d4001f; color: #ffffff; }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(255,130,85,0.2);
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .button {
+            border: none;
+            border-radius: 10px;
+            padding: 11px 18px;
+            font-family: "Oswald", sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .button:hover { transform: translateY(-2px); }
+
+        .button-primary {
+            color: #ffffff;
+            background: linear-gradient(90deg, var(--accent), #9d0016);
+            box-shadow: 0 10px 22px rgba(212,0,31,0.35);
+        }
+
+        .button-secondary {
+            color: #eef4ff;
+            background: rgba(255,255,255,0.16);
+            border: 1px solid rgba(255,255,255,0.28);
+        }
+
+        .button-danger {
+            color: #fff;
+            background: linear-gradient(90deg, #6c000f, #c1001d);
+            box-shadow: 0 10px 20px rgba(193,0,29,0.32);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .table th, .table td {
+            padding: 11px 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.14);
+            text-align: left;
+            color: #d2dced;
+        }
+
+        .table th {
+            color: #edf3ff;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.8rem;
+            background: rgba(212,0,31,0.18);
+        }
+
+        .table tbody tr:hover { background: rgba(255,255,255,0.06); }
+
+        .alert {
+            padding: 11px 13px;
+            margin: 12px 0;
+            border-radius: 10px;
+            border: 1px solid;
+            font-weight: 700;
+        }
+        .alert-success { background: rgba(57,213,159,0.14); color: #baf6df; border-color: rgba(57,213,159,0.45); }
+        .alert-error { background: rgba(255,109,109,0.18); color: #ffd2d2; border-color: rgba(255,109,109,0.45); }
+        .alert-info { background: rgba(255,209,102,0.14); color: #ffe9b3; border-color: rgba(255,209,102,0.45); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.82);
+            backdrop-filter: blur(8px);
+            z-index: 5000;
+            padding: 28px 18px;
+            overflow-y: auto;
+        }
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: linear-gradient(160deg, #181818, #111111 60%, #0b0b0b);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 16px;
+            max-width: 560px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: auto;
+            padding: 24px;
+            box-shadow: 0 24px 65px rgba(0, 0, 0, 0.42);
+            animation: popIn 0.2s ease;
+            margin: auto 0;
+        }
+
+        .modal-header {
+            font-family: "Oswald", sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-size: 1.3rem;
+            margin-bottom: 14px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        .chat-panel {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            max-width: 900px;
+        }
+
+        .chat-window {
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 16px;
+            padding: 16px;
+            height: 360px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-bubble {
+            padding: 10px 14px;
+            border-radius: 14px;
+            max-width: 75%;
+            line-height: 1.5;
+        }
+
+        .chat-user { align-self: flex-end; background: rgba(255,255,255,0.16); }
+        .chat-bot { align-self: flex-start; background: rgba(225, 6, 43, 0.18); border: 1px solid rgba(255,255,255,0.12); }
+
+        .chat-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        .faq details {
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 12px;
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.04);
+        }
+
+        .faq details + details { margin-top: 10px; }
+
+        .faq summary {
+            cursor: pointer;
+            font-weight: 700;
+            color: #f2f2f2;
+        }
+
+        .timeline {
+            display: grid;
+            gap: 10px;
+        }
+
+        .timeline-item {
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.16);
+            background: rgba(0,0,0,0.28);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.97) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes sheen {
+            0% { transform: translateX(0) skewX(-18deg); opacity: 0; }
+            12% { opacity: 1; }
+            24% { transform: translateX(580%) skewX(-18deg); opacity: 0; }
+            100% { transform: translateX(580%) skewX(-18deg); opacity: 0; }
+        }
+
+        @media (max-width: 1000px) {
+            .section-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+            .hero { grid-column: span 6; }
+            .stat-grid { grid-column: span 6; }
+        }
+
+        @media (max-width: 800px) {
+            body { padding: 14px; }
+            .content { padding: 18px 12px; }
+            .form-row { grid-template-columns: 1fr; }
+            .header h1 { font-size: 1.7rem; }
+            .table { display: block; overflow-x: auto; }
+            .modal { padding: 14px 10px; }
+            .modal-content { max-height: 92vh; padding: 18px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="brand-row">
+                <div>
+                    <h1>Roja Performance</h1>
+                    <p>Premium Tyre Shop Management System for inventory, customers, orders, and service ops.</p>
+                </div>
+                <div class="status-chip" id="apiStatus">
+                    <span class="status-dot" id="apiDot"></span>
+                    <span id="apiLabel">Checking system</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav" id="navBar">
+            <div class="nav-item active" data-tab="home">Home</div>
+            <div class="nav-item" data-tab="products">Products</div>
+            <div class="nav-item" data-tab="customers">Customers</div>
+            <div class="nav-item" data-tab="orders">Orders</div>
+            <div class="nav-item" data-tab="users">Users</div>
+            <div class="nav-item" data-tab="about">About</div>
+            <div class="nav-item" data-tab="help">Help</div>
+            <div class="nav-item" data-tab="contact">Contact</div>
+            <div class="nav-item" data-tab="chatbot">Chatbot</div>
+        </div>
+
+        <div class="content">
+            <div id="home" class="section active">
+                <div class="section-grid">
+                    <div class="card hero">
+                        <h2>Operate Faster, Drive Smarter</h2>
+                        <p>Everything you need to manage a tyre shop in one place. Track products, customers, orders, and user roles with a clean interface that stays responsive even during peak hours.</p>
+                        <div class="hero-actions">
+                            <button class="button button-primary" onclick="activateTab('products')">Manage Inventory</button>
+                            <button class="button button-secondary" onclick="activateTab('orders')">Track Orders</button>
+                        </div>
+                        <div class="tag-row">
+                            <span class="tag">Inventory Control</span>
+                            <span class="tag">CRM Ready</span>
+                            <span class="tag">Role-Based Access</span>
+                            <span class="tag">Fast Checkout</span>
+                        </div>
+                    </div>
+                    <div class="stat-grid">
+                        <div class="stat" data-tab="products">
+                            <div>
+                                <div class="muted">Products</div>
+                                <strong id="statProducts">--</strong>
+                            </div>
+                            <span class="tag">Live stock</span>
+                        </div>
+                        <div class="stat" data-tab="customers">
+                            <div>
+                                <div class="muted">Customers</div>
+                                <strong id="statCustomers">--</strong>
+                            </div>
+                            <span class="tag">Active base</span>
+                        </div>
+                        <div class="stat" data-tab="orders">
+                            <div>
+                                <div class="muted">Orders</div>
+                                <strong id="statOrders">--</strong>
+                            </div>
+                            <span class="tag">Open today</span>
+                        </div>
+                        <div class="stat" data-tab="users">
+                            <div>
+                                <div class="muted">Users</div>
+                                <strong id="statUsers">--</strong>
+                            </div>
+                            <span class="tag">Staff</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-grid" style="margin-top: 18px;">
+                    <div class="card" style="grid-column: span 4;">
+                        <h3>Sales Insights</h3>
+                        <p class="muted">Monitor revenue, popular sizes, and brand performance. Export reports weekly for faster decisions.</p>
+                    </div>
+                    <div class="card" style="grid-column: span 4;">
+                        <h3>Service Workflow</h3>
+                        <p class="muted">Keep orders moving from intake to installation. Track each step to reduce delays.</p>
+                    </div>
+                    <div class="card" style="grid-column: span 4;">
+                        <h3>Customer Experience</h3>
+                        <p class="muted">Centralize service history, preferred brands, and quick repeat orders.</p>
+                    </div>
+                </div>
+                <div class="section-grid" style="margin-top: 18px;">
+                    <div class="card strong" style="grid-column: span 7;">
+                        <h3>System Settings</h3>
+                        <p class="muted">Point the UI to your running API or keep working offline with demo data.</p>
+                        <div class="toolbar">
+                            <input type="text" id="apiBaseInput" class="search-input" placeholder="http://localhost:8080/api">
+                            <button class="button button-secondary" id="apiConnectBtn">Connect</button>
+                            <span class="pill"><input type="checkbox" id="offlineToggle"> Offline Mode</span>
+                        </div>
+                        <div class="tag-row">
+                            <span class="tag">Current API: <span id="apiBaseLabel"></span></span>
+                            <span class="tag">Role Header: <span id="roleLabel"></span></span>
+                        </div>
+                    </div>
+                    <div class="card" style="grid-column: span 5;">
+                        <h3>Quick Actions</h3>
+                        <div class="hero-actions">
+                            <button class="button button-primary" onclick="openProductModal()">New Product</button>
+                            <button class="button button-secondary" onclick="openCustomerModal()">New Customer</button>
+                            <button class="button button-secondary" onclick="openOrderModal()">New Order</button>
+                        </div>
+                        <div class="muted" style="margin-top: 10px;">Use quick actions to add data fast when the shop is busy.</div>
+                        <div class="progress"><div class="progress-bar" id="activityProgress"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div id="products" class="section">
+                <h2>Products Management</h2>
+                <button class="button button-primary" onclick="openProductModal()">Add New Product</button>
+                <div class="toolbar">
+                    <input type="search" id="productSearch" class="search-input" placeholder="Search by name, brand, size, type">
+                    <button class="button button-secondary" onclick="loadProducts()">Refresh</button>
+                </div>
+                <div id="productAlert"></div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Brand</th>
+                            <th>Price (INR)</th>
+                            <th>Quantity</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productTable"></tbody>
+                </table>
+
+                <div id="productModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">Product Form</div>
+                        <form id="productForm">
+                            <input type="hidden" id="productId">
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="text" id="productName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea id="productDescription"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Brand</label>
+                                    <input type="text" id="productBrand" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Type</label>
+                                    <input type="text" id="productType" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Price</label>
+                                    <input type="number" id="productPrice" required step="0.01" min="0">
+                                </div>
+                                <div class="form-group">
+                                    <label>Quantity</label>
+                                    <input type="number" id="productQuantity" required min="0">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Size</label>
+                                <input type="text" id="productSize" placeholder="e.g., 225/45R17">
+                            </div>
+                            <div class="action-buttons">
+                                <button type="button" class="button button-secondary" onclick="closeProductModal()">Cancel</button>
+                                <button type="submit" class="button button-primary">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div id="customers" class="section">
+                <h2>Customers Management</h2>
+                <button class="button button-primary" onclick="openCustomerModal()">Add New Customer</button>
+                <div class="toolbar">
+                    <input type="search" id="customerSearch" class="search-input" placeholder="Search by name, email, phone, city">
+                    <button class="button button-secondary" onclick="loadCustomers()">Refresh</button>
+                </div>
+                <div id="customerAlert"></div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>City</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerTable"></tbody>
+                </table>
+
+                <div id="customerModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">Customer Form</div>
+                        <form id="customerForm">
+                            <input type="hidden" id="customerId">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>First Name</label>
+                                    <input type="text" id="customerFirstName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Last Name</label>
+                                    <input type="text" id="customerLastName" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="customerEmail" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone</label>
+                                    <input type="tel" id="customerPhone" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Address</label>
+                                <textarea id="customerAddress"></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>City</label>
+                                    <input type="text" id="customerCity">
+                                </div>
+                                <div class="form-group">
+                                    <label>State</label>
+                                    <input type="text" id="customerState">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Zip Code</label>
+                                    <input type="text" id="customerZipCode">
+                                </div>
+                                <div class="form-group">
+                                    <label>Status</label>
+                                    <select id="customerStatus">
+                                        <option value="true">Active</option>
+                                        <option value="false">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="action-buttons">
+                                <button type="button" class="button button-secondary" onclick="closeCustomerModal()">Cancel</button>
+                                <button type="submit" class="button button-primary">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div id="orders" class="section">
+                <h2>Orders Management</h2>
+                <button class="button button-primary" onclick="openOrderModal()">Add New Order</button>
+                <div class="toolbar">
+                    <input type="search" id="orderSearch" class="search-input" placeholder="Search by customer, product, status">
+                    <button class="button button-secondary" onclick="loadOrders()">Refresh</button>
+                </div>
+                <div id="orderAlert"></div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Total (INR)</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTable"></tbody>
+                </table>
+
+                <div id="orderModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">Order Form</div>
+                        <form id="orderForm">
+                            <input type="hidden" id="orderId">
+                            <div class="form-group">
+                                <label>Customer</label>
+                                <select id="orderCustomerId" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Product</label>
+                                <select id="orderProductId" required></select>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Quantity</label>
+                                    <input type="number" id="orderQuantity" min="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Total Price</label>
+                                    <input type="number" id="orderTotalPrice" min="0" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Shipping Address</label>
+                                <textarea id="orderShippingAddress"></textarea>
+                            </div>
+                            <div class="action-buttons">
+                                <button type="button" class="button button-secondary" onclick="closeOrderModal()">Cancel</button>
+                                <button type="submit" class="button button-primary">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div id="users" class="section">
+                <h2>Users Management</h2>
+                <button class="button button-primary" onclick="openUserModal()">Add New User</button>
+                <div class="toolbar">
+                    <input type="search" id="userSearch" class="search-input" placeholder="Search by username, email, role">
+                    <button class="button button-secondary" onclick="loadUsers()">Refresh</button>
+                </div>
+                <div id="userAlert"></div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Full Name</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTable"></tbody>
+                </table>
+
+                <div id="userModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">User Form</div>
+                        <form id="userForm">
+                            <input type="hidden" id="userId">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" id="userName" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="userEmail" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Full Name</label>
+                                    <input type="text" id="userFullName" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" id="userPassword">
+                            </div>
+                            <div class="form-group">
+                                <label>Role</label>
+                                <select id="userRole" required>
+                                    <option value="">Select Role</option>
+                                    <option value="ADMIN">Admin</option>
+                                    <option value="MANAGER">Manager</option>
+                                    <option value="USER">User</option>
+                                </select>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>OTP Code</label>
+                                    <input type="text" id="userOtpCode" placeholder="Enter 6-digit OTP">
+                                </div>
+                                <div class="form-group">
+                                    <label>OTP Actions</label>
+                                    <div class="action-buttons" style="justify-content: flex-start; margin-top: 0;">
+                                        <button type="button" class="button button-secondary" id="sendUserOtpBtn">Send OTP</button>
+                                        <button type="button" class="button button-secondary" id="verifyUserOtpBtn">Verify OTP</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="action-buttons">
+                                <button type="button" class="button button-secondary" onclick="closeUserModal()">Cancel</button>
+                                <button type="submit" class="button button-primary">Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div id="about" class="section">
+                <h2>About Us</h2>
+                <div class="section-grid">
+                    <div class="card" style="grid-column: span 7;">
+                        <h3>Built for Performance Shops</h3>
+                        <p class="muted">Roja Performance exists to bring clarity to tyre operations. From the first customer visit to the final installation, we track every step so you can deliver a premium experience.</p>
+                        <p class="muted" style="margin-top: 10px;">Our platform focuses on speed, accountability, and inventory accuracy to reduce downtime and improve margins.</p>
+                    </div>
+                    <div class="card strong" style="grid-column: span 5;">
+                        <h3>Our Mission</h3>
+                        <p class="muted">Make tyre service operations predictable, measurable, and scalable for growing teams.</p>
+                        <div class="tag-row">
+                            <span class="tag">Operational Clarity</span>
+                            <span class="tag">Customer Trust</span>
+                            <span class="tag">Predictable Growth</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card" style="margin-top: 18px;">
+                    <h3>Journey</h3>
+                    <div class="timeline">
+                        <div class="timeline-item">2019: Started as a shop-floor tracking tool.</div>
+                        <div class="timeline-item">2021: Added CRM and product intelligence.</div>
+                        <div class="timeline-item">2023: Integrated role-based controls and order automation.</div>
+                        <div class="timeline-item">2026: Focused on high-performance retail workflows.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="help" class="section">
+                <h2>Help Center</h2>
+                <div class="card">
+                    <h3>Quick Troubleshooting</h3>
+                    <div class="faq">
+                        <details>
+                            <summary>Products are not loading</summary>
+                            <p class="muted">Check the API status at the top. If it shows Offline, confirm the backend is running on port 8080 and refresh.</p>
+                        </details>
+                        <details>
+                            <summary>Orders do not save</summary>
+                            <p class="muted">Make sure quantity and total price are valid numbers. Also verify customer and product selections are populated.</p>
+                        </details>
+                        <details>
+                            <summary>User creation fails</summary>
+                            <p class="muted">Ensure the role is set and the email is valid. If the response still fails, check server logs for validation errors.</p>
+                        </details>
+                    </div>
+                </div>
+                <div class="section-grid" style="margin-top: 18px;">
+                    <div class="card" style="grid-column: span 6;">
+                        <h3>Contact Support</h3>
+                        <p class="muted">Reach out with the error message shown in the alert banner for faster response.</p>
+                        <div class="hero-actions">
+                            <button class="button button-primary" onclick="activateTab('contact')">Contact Team</button>
+                            <button class="button button-secondary" onclick="activateTab('chatbot')">Ask Chatbot</button>
+                        </div>
+                    </div>
+                    <div class="card" style="grid-column: span 6;">
+                        <h3>System Checklist</h3>
+                        <ul style="margin-left: 16px; color: var(--text-muted); line-height: 1.6;">
+                            <li>Backend running on port 8080</li>
+                            <li>Database connected and seeded</li>
+                            <li>Browser cache cleared after updates</li>
+                            <li>Role headers present for restricted actions</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div id="contact" class="section">
+                <h2>Contact Us</h2>
+                <div class="section-grid">
+                    <div class="card" style="grid-column: span 7;">
+                        <h3>Send a message</h3>
+                        <div id="contactAlert"></div>
+                        <form id="contactForm">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Name</label>
+                                    <input type="text" id="contactName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" id="contactEmail" required>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Topic</label>
+                                    <input type="text" id="contactTopic" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Priority</label>
+                                    <select id="contactPriority">
+                                        <option value="Normal">Normal</option>
+                                        <option value="High">High</option>
+                                        <option value="Urgent">Urgent</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Message</label>
+                                <textarea id="contactMessage" required></textarea>
+                            </div>
+                            <button type="submit" class="button button-primary">Send Message</button>
+                        </form>
+                    </div>
+                    <div class="card" style="grid-column: span 5;">
+                        <h3>Support Hours</h3>
+                        <p class="muted">Monday - Saturday: 9:00 AM to 7:00 PM</p>
+                        <p class="muted">Sunday: 10:00 AM to 4:00 PM</p>
+                        <div class="tag-row">
+                            <span class="tag">support@rojaperformance.com</span>
+                            <span class="tag">+91-90000-00000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chatbot" class="section">
+                <h2>Chatbot Assistant</h2>
+                <div class="chat-panel">
+                    <div class="chat-window" id="chatWindow"></div>
+                    <div class="chat-actions">
+                        <input type="text" id="chatInput" placeholder="Ask about products, orders, or setup" style="flex: 1;">
+                        <button class="button button-primary" id="chatSend">Send</button>
+                        <button class="button button-secondary" id="chatClear">Clear</button>
+                    </div>
+                    <div class="chat-actions">
+                        <button class="button button-secondary" onclick="quickChat('How do I add a product?')">Add product</button>
+                        <button class="button button-secondary" onclick="quickChat('Why is the API offline?')">API offline</button>
+                        <button class="button button-secondary" onclick="quickChat('How to create an order?')">Create order</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let API_URL = localStorage.getItem('apiBaseUrl');
+        if (!API_URL) {
+            API_URL = window.location.protocol === 'file:' ? 'http://localhost:8080/api' : '/api';
+        }
+        const REQUESTER_ROLE = localStorage.getItem('requesterRole') || 'ADMIN';
+        let offlineMode = localStorage.getItem('offlineMode') === '1';
+        let manualOrderTotal = false;
+
+        const LOCAL_KEY_PREFIX = 'roja_offline_';
+        const LOCAL_SEED = {
+            products: [
+                { id: 1, name: 'Pirelli P Zero', brand: 'Pirelli', price: 12000, quantity: 24, available: true, size: '225/45R17', type: 'Performance', description: 'High grip performance tyre' },
+                { id: 2, name: 'Michelin Pilot Sport 4', brand: 'Michelin', price: 13500, quantity: 18, available: true, size: '205/55R16', type: 'Sport', description: 'Balanced sport tyre' },
+                { id: 3, name: 'Bridgestone Turanza', brand: 'Bridgestone', price: 9800, quantity: 30, available: true, size: '195/65R15', type: 'Touring', description: 'Comfort touring tyre' }
+            ],
+            customers: [
+                { id: 1, firstName: 'Asha', lastName: 'K', email: 'asha@example.com', phone: '9000000001', city: 'Chennai', active: true },
+                { id: 2, firstName: 'Ravi', lastName: 'S', email: 'ravi@example.com', phone: '9000000002', city: 'Bengaluru', active: true }
+            ],
+            orders: [
+                { id: 1, customer: { id: 1, firstName: 'Asha', lastName: 'K' }, product: { id: 1, name: 'Pirelli P Zero' }, quantity: 2, totalPrice: 24000, status: 'PENDING', shippingAddress: 'Main Road' }
+            ],
+            users: [
+                { id: 1, username: 'admin', email: 'admin@roja.com', fullName: 'Store Admin', role: 'ADMIN', enabled: true }
+            ]
+        };
+        const cache = { products: [], customers: [], orders: [], users: [] };
+
+        function getLocalKey(type) {
+            return `${LOCAL_KEY_PREFIX}${type}`;
+        }
+
+        function readLocal(type) {
+            const raw = localStorage.getItem(getLocalKey(type));
+            return raw ? JSON.parse(raw) : null;
+        }
+
+        function writeLocal(type, data) {
+            localStorage.setItem(getLocalKey(type), JSON.stringify(data));
+        }
+
+        function getLocalData(type) {
+            let data = readLocal(type);
+            if (!data) {
+                data = JSON.parse(JSON.stringify(LOCAL_SEED[type] || []));
+                writeLocal(type, data);
+            }
+            cache[type] = data;
+            return data;
+        }
+
+        function setLocalData(type, data) {
+            cache[type] = data;
+            writeLocal(type, data);
+        }
+
+        function getNextId(list) {
+            return list.reduce((maxId, item) => Math.max(maxId, item.id || 0), 0) + 1;
+        }
+
+        function isOffline() {
+            return offlineMode || !navigator.onLine;
+        }
+
+        const navBar = document.getElementById('navBar');
+        navBar.addEventListener('click', (event) => {
+            const item = event.target.closest('.nav-item');
+            if (!item) return;
+            const tabName = item.dataset.tab;
+            activateTab(tabName);
+        });
+
+        const apiBaseInput = document.getElementById('apiBaseInput');
+        const apiBaseLabel = document.getElementById('apiBaseLabel');
+        const roleLabel = document.getElementById('roleLabel');
+        const offlineToggle = document.getElementById('offlineToggle');
+        const apiConnectBtn = document.getElementById('apiConnectBtn');
+
+        function setApiBase(value) {
+            let trimmed = value ? value.trim() : '';
+            if (!trimmed) return;
+            trimmed = trimmed.replace(/\/$/, '');
+            if (!trimmed.endsWith('/api')) {
+                trimmed = `${trimmed}/api`;
+            }
+            API_URL = trimmed;
+            localStorage.setItem('apiBaseUrl', API_URL);
+            if (apiBaseLabel) apiBaseLabel.textContent = API_URL;
+        }
+
+        function updateSettingsUi() {
+            if (apiBaseInput) apiBaseInput.value = API_URL;
+            if (apiBaseLabel) apiBaseLabel.textContent = API_URL;
+            if (roleLabel) roleLabel.textContent = REQUESTER_ROLE;
+            if (offlineToggle) offlineToggle.checked = offlineMode;
+        }
+
+        if (apiConnectBtn) {
+            apiConnectBtn.addEventListener('click', () => {
+                if (apiBaseInput && apiBaseInput.value) {
+                    setApiBase(apiBaseInput.value);
+                }
+                loadHomeStats();
+            });
+        }
+
+        if (offlineToggle) {
+            offlineToggle.addEventListener('change', (event) => {
+                offlineMode = event.target.checked;
+                localStorage.setItem('offlineMode', offlineMode ? '1' : '0');
+                setApiStatus(!offlineMode);
+                loadHomeStats();
+            });
+        }
+
+        function activateTab(tabName) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById(tabName);
+            if (target) target.classList.add('active');
+            const navItem = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
+            if (navItem) navItem.classList.add('active');
+
+            if (tabName === 'products') loadProducts();
+            if (tabName === 'customers') loadCustomers();
+            if (tabName === 'orders') loadOrders();
+            if (tabName === 'users') loadUsers();
+            if (tabName === 'home') loadHomeStats();
+
+            if (target) applyReveal(target);
+        }
+
+        function applyReveal(section) {
+            const items = section.querySelectorAll('.card, .stat, .table, .chat-panel');
+            items.forEach((el, idx) => {
+                el.classList.add('reveal');
+                el.classList.remove('visible');
+                el.style.transitionDelay = `${Math.min(idx * 0.04, 0.3)}s`;
+            });
+            requestAnimationFrame(() => {
+                items.forEach(el => el.classList.add('visible'));
+            });
+        }
+
+        function setApiStatus(isOnline) {
+            const label = document.getElementById('apiLabel');
+            const dot = document.getElementById('apiDot');
+            if (offlineMode) {
+                label.textContent = 'Offline Mode';
+                dot.style.background = 'var(--accent-3)';
+                dot.style.boxShadow = '0 0 10px rgba(255, 179, 71, 0.7)';
+            } else if (isOnline) {
+                label.textContent = 'System Online';
+                dot.style.background = 'var(--ok)';
+                dot.style.boxShadow = '0 0 10px rgba(57, 213, 159, 0.7)';
+            } else {
+                label.textContent = 'System Offline';
+                dot.style.background = 'var(--bad)';
+                dot.style.boxShadow = '0 0 10px rgba(255, 109, 109, 0.7)';
+            }
+        }
+
+        async function fetchJson(url, options = {}) {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || `Request failed: ${response.status}`);
+            }
+            if (response.status === 204) return null;
+            return response.json();
+        }
+
+        async function postJson(url, payload, extraHeaders = {}) {
+            return fetchJson(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...extraHeaders
+                },
+                body: JSON.stringify(payload)
+            });
+        }
+
+        async function getData(type) {
+            if (isOffline()) {
+                return getLocalData(type);
+            }
+            const endpoint = type;
+            const data = await fetchJson(`${API_URL}/${endpoint}`);
+            cache[type] = data;
+            return data;
+        }
+
+        function animateCount(element, value) {
+            if (!element || !Number.isFinite(value)) {
+                if (element) element.textContent = value;
+                return;
+            }
+            const start = 0;
+            const duration = 600;
+            const startTime = performance.now();
+            function tick(now) {
+                const progress = Math.min((now - startTime) / duration, 1);
+                const current = Math.floor(start + (value - start) * progress);
+                element.textContent = current;
+                if (progress < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        }
+
+        async function loadHomeStats() {
+            updateSettingsUi();
+            try {
+                const [products, customers, orders, users] = await Promise.all([
+                    getData('products'),
+                    getData('customers'),
+                    getData('orders'),
+                    getData('users')
+                ]);
+                cache.products = products;
+                cache.customers = customers;
+                cache.orders = orders;
+                cache.users = users;
+
+                animateCount(document.getElementById('statProducts'), products.length);
+                animateCount(document.getElementById('statCustomers'), customers.length);
+                animateCount(document.getElementById('statOrders'), orders.length);
+                animateCount(document.getElementById('statUsers'), users.length);
+
+                const activityProgress = document.getElementById('activityProgress');
+                if (activityProgress) {
+                    const ratio = products.length ? Math.min(100, Math.round((orders.length / products.length) * 100)) : 20;
+                    activityProgress.style.width = `${Math.max(20, ratio)}%`;
+                }
+
+                setApiStatus(!isOffline());
+            } catch (err) {
+                const products = getLocalData('products');
+                const customers = getLocalData('customers');
+                const orders = getLocalData('orders');
+                const users = getLocalData('users');
+                animateCount(document.getElementById('statProducts'), products.length);
+                animateCount(document.getElementById('statCustomers'), customers.length);
+                animateCount(document.getElementById('statOrders'), orders.length);
+                animateCount(document.getElementById('statUsers'), users.length);
+                setApiStatus(false);
+            }
+        }
+
+        function filterList(list, query, fields) {
+            if (!query) return list;
+            const q = query.toLowerCase();
+            return list.filter(item => fields.some(field => {
+                const value = typeof field === 'function' ? field(item) : item[field];
+                return value && value.toString().toLowerCase().includes(q);
+            }));
+        }
+
+        function renderProducts(list) {
+            const tbody = document.getElementById('productTable');
+            const query = document.getElementById('productSearch')?.value.trim() || '';
+            const filtered = filterList(list, query, ['name', 'brand', 'type', 'size']);
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="7">No products found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = filtered.map(p => `
+                <tr>
+                    <td>${p.id}</td>
+                    <td>${p.name}</td>
+                    <td>${p.brand || '-'}</td>
+                    <td>INR ${p.price}</td>
+                    <td>${p.quantity}</td>
+                    <td><span style="color: ${p.available ? 'var(--ok)' : 'var(--bad)'}">${p.available ? 'Available' : 'Unavailable'}</span></td>
+                    <td>
+                        <button class="button button-secondary" onclick="editProduct(${p.id})">Edit</button>
+                        <button class="button button-danger" onclick="deleteProduct(${p.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // PRODUCTS
+        async function loadProducts() {
+            try {
+                const data = await getData('products');
+                cache.products = data;
+                renderProducts(data);
+                if (isOffline()) {
+                    showAlert('productAlert', 'Offline mode: using local product data.', 'info');
+                }
+            } catch (err) {
+                const fallback = getLocalData('products');
+                renderProducts(fallback);
+                setApiStatus(false);
+                showAlert('productAlert', 'Unable to reach API. Showing local data.', 'error');
+            }
+        }
+
+        function openProductModal() {
+            document.getElementById('productForm').reset();
+            document.getElementById('productId').value = '';
+            document.getElementById('productModal').classList.add('active');
+        }
+
+        function closeProductModal() {
+            document.getElementById('productModal').classList.remove('active');
+        }
+
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('productId').value;
+            const data = {
+                name: document.getElementById('productName').value,
+                description: document.getElementById('productDescription').value,
+                brand: document.getElementById('productBrand').value,
+                type: document.getElementById('productType').value,
+                price: parseFloat(document.getElementById('productPrice').value),
+                quantity: parseInt(document.getElementById('productQuantity').value, 10),
+                size: document.getElementById('productSize').value,
+                available: true
+            };
+
+            if (data.price < 0 || data.quantity < 0) {
+                showAlert('productAlert', 'Price and quantity cannot be negative.', 'error');
+                return;
+            }
+
+            if (isOffline()) {
+                const list = getLocalData('products');
+                if (id) {
+                    const idx = list.findIndex(p => p.id === parseInt(id, 10));
+                    if (idx >= 0) list[idx] = { ...list[idx], ...data };
+                } else {
+                    list.push({ ...data, id: getNextId(list), available: data.quantity > 0 });
+                }
+                setLocalData('products', list);
+                renderProducts(list);
+                closeProductModal();
+                showAlert('productAlert', 'Saved locally (offline mode).', 'info');
+                return;
+            }
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/products/${id}` : `${API_URL}/products`;
+
+            try {
+                await fetchJson(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Role': REQUESTER_ROLE
+                    },
+                    body: JSON.stringify(data)
+                });
+                showAlert('productAlert', 'Product saved successfully!', 'success');
+                closeProductModal();
+                loadProducts();
+            } catch (err) {
+                showAlert('productAlert', `Error saving product: ${err.message || 'Unknown error'}`, 'error');
+            }
+        });
+
+        async function editProduct(id) {
+            try {
+                const p = isOffline()
+                    ? getLocalData('products').find(item => item.id === id)
+                    : await fetchJson(`${API_URL}/products/${id}`);
+                if (!p) throw new Error('Not found');
+                document.getElementById('productId').value = p.id;
+                document.getElementById('productName').value = p.name;
+                document.getElementById('productDescription').value = p.description || '';
+                document.getElementById('productBrand').value = p.brand;
+                document.getElementById('productType').value = p.type;
+                document.getElementById('productPrice').value = p.price;
+                document.getElementById('productQuantity').value = p.quantity;
+                document.getElementById('productSize').value = p.size || '';
+                document.getElementById('productModal').classList.add('active');
+            } catch (err) {
+                showAlert('productAlert', 'Unable to load product', 'error');
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('Are you sure?')) return;
+            try {
+                if (isOffline()) {
+                    const list = getLocalData('products').filter(p => p.id !== id);
+                    setLocalData('products', list);
+                    renderProducts(list);
+                    showAlert('productAlert', 'Deleted locally (offline mode).', 'info');
+                    return;
+                }
+                await fetchJson(`${API_URL}/products/${id}`, { method: 'DELETE' });
+                showAlert('productAlert', 'Product deleted successfully!', 'success');
+                loadProducts();
+            } catch (err) {
+                showAlert('productAlert', 'Error deleting product', 'error');
+            }
+        }
+
+        function renderCustomers(list) {
+            const tbody = document.getElementById('customerTable');
+            const query = document.getElementById('customerSearch')?.value.trim() || '';
+            const filtered = filterList(list, query, [
+                (c) => `${c.firstName || ''} ${c.lastName || ''}`,
+                'email',
+                'phone',
+                'city'
+            ]);
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="7">No customers found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = filtered.map(c => `
+                <tr>
+                    <td>${c.id}</td>
+                    <td>${c.firstName} ${c.lastName}</td>
+                    <td>${c.email}</td>
+                    <td>${c.phone}</td>
+                    <td>${c.city || '-'}</td>
+                    <td><span style="color: ${c.active ? 'var(--ok)' : 'var(--bad)'}">${c.active ? 'Active' : 'Inactive'}</span></td>
+                    <td>
+                        <button class="button button-secondary" onclick="editCustomer(${c.id})">Edit</button>
+                        <button class="button button-danger" onclick="deleteCustomer(${c.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // CUSTOMERS
+        async function loadCustomers() {
+            try {
+                const data = await getData('customers');
+                cache.customers = data;
+                renderCustomers(data);
+                if (isOffline()) {
+                    showAlert('customerAlert', 'Offline mode: using local customer data.', 'info');
+                }
+            } catch (err) {
+                const fallback = getLocalData('customers');
+                renderCustomers(fallback);
+                setApiStatus(false);
+                showAlert('customerAlert', 'Unable to reach API. Showing local data.', 'error');
+            }
+        }
+
+        function openCustomerModal() {
+            document.getElementById('customerForm').reset();
+            document.getElementById('customerId').value = '';
+            document.getElementById('customerModal').classList.add('active');
+        }
+
+        function closeCustomerModal() {
+            document.getElementById('customerModal').classList.remove('active');
+        }
+
+        document.getElementById('customerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('customerId').value;
+            const data = {
+                firstName: document.getElementById('customerFirstName').value,
+                lastName: document.getElementById('customerLastName').value,
+                email: document.getElementById('customerEmail').value,
+                phone: document.getElementById('customerPhone').value,
+                address: document.getElementById('customerAddress').value,
+                city: document.getElementById('customerCity').value,
+                state: document.getElementById('customerState').value,
+                zipCode: document.getElementById('customerZipCode').value,
+                active: document.getElementById('customerStatus').value === 'true'
+            };
+
+            if (isOffline()) {
+                const list = getLocalData('customers');
+                if (id) {
+                    const idx = list.findIndex(c => c.id === parseInt(id, 10));
+                    if (idx >= 0) list[idx] = { ...list[idx], ...data };
+                } else {
+                    list.push({ ...data, id: getNextId(list) });
+                }
+                setLocalData('customers', list);
+                renderCustomers(list);
+                closeCustomerModal();
+                showAlert('customerAlert', 'Saved locally (offline mode).', 'info');
+                return;
+            }
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/customers/${id}` : `${API_URL}/customers`;
+
+            try {
+                await fetchJson(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Role': REQUESTER_ROLE
+                    },
+                    body: JSON.stringify(data)
+                });
+                showAlert('customerAlert', 'Customer saved successfully!', 'success');
+                closeCustomerModal();
+                loadCustomers();
+            } catch (err) {
+                showAlert('customerAlert', `Error saving customer: ${err.message || 'Unknown error'}`, 'error');
+            }
+        });
+
+        async function editCustomer(id) {
+            try {
+                const c = isOffline()
+                    ? getLocalData('customers').find(item => item.id === id)
+                    : await fetchJson(`${API_URL}/customers/${id}`);
+                if (!c) throw new Error('Not found');
+                document.getElementById('customerId').value = c.id;
+                document.getElementById('customerFirstName').value = c.firstName;
+                document.getElementById('customerLastName').value = c.lastName;
+                document.getElementById('customerEmail').value = c.email;
+                document.getElementById('customerPhone').value = c.phone;
+                document.getElementById('customerAddress').value = c.address || '';
+                document.getElementById('customerCity').value = c.city || '';
+                document.getElementById('customerState').value = c.state || '';
+                document.getElementById('customerZipCode').value = c.zipCode || '';
+                document.getElementById('customerStatus').value = c.active ? 'true' : 'false';
+                document.getElementById('customerModal').classList.add('active');
+            } catch (err) {
+                showAlert('customerAlert', 'Unable to load customer', 'error');
+            }
+        }
+
+        async function deleteCustomer(id) {
+            if (!confirm('Are you sure?')) return;
+            try {
+                if (isOffline()) {
+                    const list = getLocalData('customers').filter(c => c.id !== id);
+                    setLocalData('customers', list);
+                    renderCustomers(list);
+                    showAlert('customerAlert', 'Deleted locally (offline mode).', 'info');
+                    return;
+                }
+                await fetchJson(`${API_URL}/customers/${id}`, { method: 'DELETE' });
+                showAlert('customerAlert', 'Customer deleted successfully!', 'success');
+                loadCustomers();
+            } catch (err) {
+                showAlert('customerAlert', 'Error deleting customer', 'error');
+            }
+        }
+
+        function renderOrders(list) {
+            const tbody = document.getElementById('orderTable');
+            const query = document.getElementById('orderSearch')?.value.trim() || '';
+            const filtered = filterList(list, query, [
+                (o) => `${o.customer?.firstName || ''} ${o.customer?.lastName || ''}`,
+                (o) => o.product?.name || '',
+                'status'
+            ]);
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="7">No orders found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = filtered.map(o => `
+                <tr>
+                    <td>${o.id}</td>
+                    <td>${o.customer?.firstName || '-'} ${o.customer?.lastName || ''}</td>
+                    <td>${o.product?.name || '-'}</td>
+                    <td>${o.quantity}</td>
+                    <td>INR ${o.totalPrice}</td>
+                    <td><span style="color: #ffb347">${o.status}</span></td>
+                    <td>
+                        <button class="button button-secondary" onclick="editOrder(${o.id})">Edit</button>
+                        <button class="button button-danger" onclick="deleteOrder(${o.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ORDERS
+        async function loadOrders() {
+            try {
+                const data = await getData('orders');
+                cache.orders = data;
+                renderOrders(data);
+                if (isOffline()) {
+                    showAlert('orderAlert', 'Offline mode: using local order data.', 'info');
+                }
+            } catch (err) {
+                const fallback = getLocalData('orders');
+                renderOrders(fallback);
+                setApiStatus(false);
+                showAlert('orderAlert', 'Unable to reach API. Showing local data.', 'error');
+            }
+        }
+
+        function openOrderModal() {
+            document.getElementById('orderForm').reset();
+            document.getElementById('orderId').value = '';
+            manualOrderTotal = false;
+            loadCustomersForSelect();
+            loadProductsForSelect();
+            document.getElementById('orderModal').classList.add('active');
+        }
+
+        function closeOrderModal() {
+            document.getElementById('orderModal').classList.remove('active');
+        }
+
+        async function loadCustomersForSelect() {
+            try {
+                const data = cache.customers.length ? cache.customers : await getData('customers');
+                const select = document.getElementById('orderCustomerId');
+                select.innerHTML = data.map(c => `<option value="${c.id}">${c.firstName} ${c.lastName}</option>`).join('');
+            } catch (err) {
+                document.getElementById('orderCustomerId').innerHTML = '<option value="">Unavailable</option>';
+            }
+        }
+
+        async function loadProductsForSelect() {
+            try {
+                const data = cache.products.length ? cache.products : await getData('products');
+                const select = document.getElementById('orderProductId');
+                select.innerHTML = data.map(p => `<option value="${p.id}" data-price="${p.price}">${p.name}</option>`).join('');
+                updateOrderTotal();
+            } catch (err) {
+                document.getElementById('orderProductId').innerHTML = '<option value="">Unavailable</option>';
+            }
+        }
+
+        function updateOrderTotal() {
+            const select = document.getElementById('orderProductId');
+            const qtyInput = document.getElementById('orderQuantity');
+            const totalInput = document.getElementById('orderTotalPrice');
+            if (!select || !qtyInput || !totalInput) return;
+            if (manualOrderTotal) return;
+            const option = select.options[select.selectedIndex];
+            const price = option ? parseFloat(option.dataset.price || '0') : 0;
+            const qty = parseInt(qtyInput.value || '0', 10);
+            const total = Number.isFinite(price) && Number.isFinite(qty) ? price * qty : 0;
+            totalInput.value = total ? total.toFixed(2) : '';
+        }
+
+        const orderQuantityInput = document.getElementById('orderQuantity');
+        const orderProductSelect = document.getElementById('orderProductId');
+        const orderTotalInput = document.getElementById('orderTotalPrice');
+        if (orderQuantityInput && orderProductSelect && orderTotalInput) {
+            orderQuantityInput.addEventListener('input', () => {
+                if (!manualOrderTotal) updateOrderTotal();
+            });
+            orderProductSelect.addEventListener('change', () => {
+                manualOrderTotal = false;
+                updateOrderTotal();
+            });
+            orderTotalInput.addEventListener('input', () => {
+                manualOrderTotal = true;
+            });
+        }
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('orderId').value;
+            const data = {
+                customer: { id: parseInt(document.getElementById('orderCustomerId').value, 10) },
+                product: { id: parseInt(document.getElementById('orderProductId').value, 10) },
+                quantity: parseInt(document.getElementById('orderQuantity').value, 10),
+                totalPrice: parseFloat(document.getElementById('orderTotalPrice').value),
+                shippingAddress: document.getElementById('orderShippingAddress').value,
+                status: 'PENDING'
+            };
+
+            if (data.quantity < 1 || data.totalPrice < 0) {
+                showAlert('orderAlert', 'Quantity must be at least 1 and total price cannot be negative.', 'error');
+                return;
+            }
+
+            if (isOffline()) {
+                const customers = cache.customers.length ? cache.customers : getLocalData('customers');
+                const products = cache.products.length ? cache.products : getLocalData('products');
+                const customer = customers.find(c => c.id === data.customer.id);
+                const product = products.find(p => p.id === data.product.id);
+                const list = getLocalData('orders');
+                if (id) {
+                    const idx = list.findIndex(o => o.id === parseInt(id, 10));
+                    if (idx >= 0) list[idx] = { ...list[idx], ...data, customer, product };
+                } else {
+                    list.push({ ...data, id: getNextId(list), customer, product });
+                }
+                setLocalData('orders', list);
+                renderOrders(list);
+                closeOrderModal();
+                showAlert('orderAlert', 'Saved locally (offline mode).', 'info');
+                return;
+            }
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/orders/${id}` : `${API_URL}/orders`;
+
+            try {
+                await fetchJson(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                showAlert('orderAlert', 'Order saved successfully!', 'success');
+                closeOrderModal();
+                loadOrders();
+            } catch (err) {
+                showAlert('orderAlert', `Error saving order: ${err.message || 'Unknown error'}`, 'error');
+            }
+        });
+
+        async function editOrder(id) {
+            try {
+                const o = isOffline()
+                    ? getLocalData('orders').find(item => item.id === id)
+                    : await fetchJson(`${API_URL}/orders/${id}`);
+                if (!o) throw new Error('Not found');
+                await loadCustomersForSelect();
+                await loadProductsForSelect();
+                document.getElementById('orderId').value = o.id;
+                document.getElementById('orderCustomerId').value = o.customer.id;
+                document.getElementById('orderProductId').value = o.product.id;
+                document.getElementById('orderQuantity').value = o.quantity;
+                document.getElementById('orderTotalPrice').value = o.totalPrice;
+                document.getElementById('orderShippingAddress').value = o.shippingAddress || '';
+                manualOrderTotal = true;
+                document.getElementById('orderModal').classList.add('active');
+            } catch (err) {
+                showAlert('orderAlert', 'Unable to load order', 'error');
+            }
+        }
+
+        async function deleteOrder(id) {
+            if (!confirm('Are you sure?')) return;
+            try {
+                if (isOffline()) {
+                    const list = getLocalData('orders').filter(o => o.id !== id);
+                    setLocalData('orders', list);
+                    renderOrders(list);
+                    showAlert('orderAlert', 'Deleted locally (offline mode).', 'info');
+                    return;
+                }
+                await fetchJson(`${API_URL}/orders/${id}`, { method: 'DELETE' });
+                showAlert('orderAlert', 'Order deleted successfully!', 'success');
+                loadOrders();
+            } catch (err) {
+                showAlert('orderAlert', 'Error deleting order', 'error');
+            }
+        }
+
+        function renderUsers(list) {
+            const tbody = document.getElementById('userTable');
+            const query = document.getElementById('userSearch')?.value.trim() || '';
+            const filtered = filterList(list, query, ['username', 'email', 'role', 'fullName']);
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="7">No users found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = filtered.map(u => `
+                <tr>
+                    <td>${u.id}</td>
+                    <td>${u.username}</td>
+                    <td>${u.email}</td>
+                    <td>${u.fullName}</td>
+                    <td>${u.role}</td>
+                    <td><span style="color: ${u.enabled ? 'var(--ok)' : 'var(--bad)'}">${u.enabled ? 'Enabled' : 'Disabled'}</span></td>
+                    <td>
+                        <button class="button button-secondary" onclick="editUser(${u.id})">Edit</button>
+                        <button class="button button-danger" onclick="deleteUser(${u.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // USERS
+        let userOtpVerificationToken = '';
+        let userOtpVerifiedForEmail = '';
+
+        function resetUserOtpState() {
+            userOtpVerificationToken = '';
+            userOtpVerifiedForEmail = '';
+            const otpInput = document.getElementById('userOtpCode');
+            if (otpInput) otpInput.value = '';
+        }
+
+        async function loadUsers() {
+            try {
+                const data = await getData('users');
+                cache.users = data;
+                renderUsers(data);
+                if (isOffline()) {
+                    showAlert('userAlert', 'Offline mode: using local user data.', 'info');
+                }
+            } catch (err) {
+                const fallback = getLocalData('users');
+                renderUsers(fallback);
+                setApiStatus(false);
+                showAlert('userAlert', 'Unable to reach API. Showing local data.', 'error');
+            }
+        }
+
+        function openUserModal() {
+            document.getElementById('userForm').reset();
+            document.getElementById('userId').value = '';
+            resetUserOtpState();
+            const passwordInput = document.getElementById('userPassword');
+            passwordInput.style.display = 'block';
+            passwordInput.required = true;
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        function closeUserModal() {
+            resetUserOtpState();
+            document.getElementById('userModal').classList.remove('active');
+        }
+
+        async function sendUserOtp() {
+            const email = (document.getElementById('userEmail').value || '').trim();
+            const userId = document.getElementById('userId').value;
+            if (!email) {
+                showAlert('userAlert', 'Enter user email before requesting OTP.', 'error');
+                return;
+            }
+            if (isOffline()) {
+                showAlert('userAlert', 'OTP verification needs online mode.', 'error');
+                return;
+            }
+            const purpose = userId ? 'USER_UPDATE' : 'USER_CREATE';
+            try {
+                const response = await postJson(`${API_URL}/otp/request`, { email, purpose });
+                const otpCode = response && response.data ? response.data.otpCode : null;
+                userOtpVerificationToken = '';
+                userOtpVerifiedForEmail = '';
+                showAlert('userAlert', `OTP sent. Demo code: ${otpCode || 'N/A'}`, 'info');
+            } catch (err) {
+                showAlert('userAlert', `Unable to send OTP: ${err.message || 'Unknown error'}`, 'error');
+            }
+        }
+
+        async function verifyUserOtp() {
+            const email = (document.getElementById('userEmail').value || '').trim();
+            const otpCode = (document.getElementById('userOtpCode').value || '').trim();
+            const userId = document.getElementById('userId').value;
+            if (!email) {
+                showAlert('userAlert', 'Enter user email before OTP verification.', 'error');
+                return;
+            }
+            if (!otpCode) {
+                showAlert('userAlert', 'Enter OTP code to verify.', 'error');
+                return;
+            }
+            if (isOffline()) {
+                showAlert('userAlert', 'OTP verification needs online mode.', 'error');
+                return;
+            }
+            const purpose = userId ? 'USER_UPDATE' : 'USER_CREATE';
+            try {
+                const response = await postJson(`${API_URL}/otp/verify`, { email, purpose, otpCode });
+                const token = response && response.data ? response.data.verificationToken : '';
+                if (!token) throw new Error('Missing verification token');
+                userOtpVerificationToken = token;
+                userOtpVerifiedForEmail = email.toLowerCase();
+                showAlert('userAlert', 'OTP verified successfully. You can now save user.', 'success');
+            } catch (err) {
+                userOtpVerificationToken = '';
+                userOtpVerifiedForEmail = '';
+                showAlert('userAlert', `OTP verification failed: ${err.message || 'Unknown error'}`, 'error');
+            }
+        }
+
+        document.getElementById('userForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('userId').value;
+            const data = {
+                username: document.getElementById('userName').value,
+                email: document.getElementById('userEmail').value,
+                fullName: document.getElementById('userFullName').value,
+                role: document.getElementById('userRole').value,
+                enabled: true
+            };
+
+            const passwordValue = document.getElementById('userPassword').value;
+            if (!id && !passwordValue) {
+                showAlert('userAlert', 'Password is required for new users.', 'error');
+                return;
+            }
+            if (passwordValue) {
+                data.password = passwordValue;
+            }
+
+            if (isOffline()) {
+                const list = getLocalData('users');
+                if (id) {
+                    const idx = list.findIndex(u => u.id === parseInt(id, 10));
+                    if (idx >= 0) list[idx] = { ...list[idx], ...data };
+                } else {
+                    list.push({ ...data, id: getNextId(list) });
+                }
+                setLocalData('users', list);
+                renderUsers(list);
+                closeUserModal();
+                showAlert('userAlert', 'Saved locally (offline mode).', 'info');
+                return;
+            }
+
+            if (!userOtpVerificationToken || userOtpVerifiedForEmail !== data.email.trim().toLowerCase()) {
+                showAlert('userAlert', 'Please verify OTP for this email before saving user.', 'error');
+                return;
+            }
+
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_URL}/users/${id}` : `${API_URL}/users`;
+
+            try {
+                await fetchJson(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-User-Role': REQUESTER_ROLE,
+                        'X-OTP-Verification': userOtpVerificationToken
+                    },
+                    body: JSON.stringify(data)
+                });
+                showAlert('userAlert', 'User saved successfully!', 'success');
+                closeUserModal();
+                loadUsers();
+            } catch (err) {
+                showAlert('userAlert', `Error saving user: ${err.message || 'Unknown error'}`, 'error');
+            }
+        });
+
+        async function editUser(id) {
+            try {
+                const u = isOffline()
+                    ? getLocalData('users').find(item => item.id === id)
+                    : await fetchJson(`${API_URL}/users/${id}`);
+                if (!u) throw new Error('Not found');
+                document.getElementById('userId').value = u.id;
+                document.getElementById('userName').value = u.username;
+                document.getElementById('userEmail').value = u.email;
+                document.getElementById('userFullName').value = u.fullName;
+                document.getElementById('userRole').value = u.role;
+                resetUserOtpState();
+                const passwordInput = document.getElementById('userPassword');
+                passwordInput.value = '';
+                passwordInput.required = false;
+                passwordInput.style.display = 'none';
+                document.getElementById('userModal').classList.add('active');
+            } catch (err) {
+                showAlert('userAlert', 'Unable to load user', 'error');
+            }
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('Are you sure?')) return;
+            try {
+                if (isOffline()) {
+                    const list = getLocalData('users').filter(u => u.id !== id);
+                    setLocalData('users', list);
+                    renderUsers(list);
+                    showAlert('userAlert', 'Deleted locally (offline mode).', 'info');
+                    return;
+                }
+                await fetchJson(`${API_URL}/users/${id}`, { method: 'DELETE' });
+                showAlert('userAlert', 'User deleted successfully!', 'success');
+                loadUsers();
+            } catch (err) {
+                showAlert('userAlert', 'Error deleting user', 'error');
+            }
+        }
+
+        const productSearch = document.getElementById('productSearch');
+        if (productSearch) productSearch.addEventListener('input', () => renderProducts(cache.products));
+
+        const customerSearch = document.getElementById('customerSearch');
+        if (customerSearch) customerSearch.addEventListener('input', () => renderCustomers(cache.customers));
+
+        const sendUserOtpBtn = document.getElementById('sendUserOtpBtn');
+        if (sendUserOtpBtn) sendUserOtpBtn.addEventListener('click', sendUserOtp);
+        const verifyUserOtpBtn = document.getElementById('verifyUserOtpBtn');
+        if (verifyUserOtpBtn) verifyUserOtpBtn.addEventListener('click', verifyUserOtp);
+
+        const orderSearch = document.getElementById('orderSearch');
+        if (orderSearch) orderSearch.addEventListener('input', () => renderOrders(cache.orders));
+
+        const userSearch = document.getElementById('userSearch');
+        if (userSearch) userSearch.addEventListener('input', () => renderUsers(cache.users));
+
+        document.querySelectorAll('.stat[data-tab]').forEach(stat => {
+            stat.addEventListener('click', () => activateTab(stat.dataset.tab));
+        });
+
+        window.addEventListener('online', () => {
+            if (!offlineMode) {
+                setApiStatus(true);
+                loadHomeStats();
+            }
+        });
+
+        window.addEventListener('offline', () => {
+            if (!offlineMode) setApiStatus(false);
+        });
+
+        // CONTACT
+        document.getElementById('contactForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('contactName').value,
+                email: document.getElementById('contactEmail').value,
+                topic: document.getElementById('contactTopic').value,
+                priority: document.getElementById('contactPriority').value,
+                message: document.getElementById('contactMessage').value
+            };
+
+            if (!isOffline()) {
+                try {
+                    const response = await postJson(`${API_URL}/support/tickets`, payload);
+                    showAlert('contactAlert', `Thanks for reaching out. Ticket ${response.ticketId} created.`, 'success');
+                    e.target.reset();
+                    return;
+                } catch (err) {
+                    showAlert('contactAlert', 'Unable to reach support service. Saving locally.', 'info');
+                }
+            }
+
+            const ticketId = Math.floor(Math.random() * 90000) + 10000;
+            showAlert('contactAlert', `Saved locally (offline). Ticket #${ticketId}.`, 'info');
+            e.target.reset();
+        });
+
+        // CHATBOT
+        const chatWindow = document.getElementById('chatWindow');
+        const chatInput = document.getElementById('chatInput');
+
+        function appendChat(message, isUser) {
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${isUser ? 'chat-user' : 'chat-bot'}`;
+            bubble.textContent = message;
+            chatWindow.appendChild(bubble);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function botReply(text) {
+            const msg = text.toLowerCase();
+            if (msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+                return 'Hello! I can help with products, orders, customers, users, or setup. Ask me a task.';
+            }
+            if (msg.includes('api') || msg.includes('offline')) {
+                return `Current API base is ${API_URL}. Offline mode is ${offlineMode ? 'ON' : 'OFF'}. Run the backend on port 8080 and click Connect if needed.`;
+            }
+            if (msg.includes('product') || msg.includes('inventory') || msg.includes('stock')) {
+                return 'Go to Products, click Add New Product, and fill brand, type, price, quantity, and size.';
+            }
+            if (msg.includes('order')) {
+                return 'Open Orders, click Add New Order, choose customer and product. Quantity and total price will auto-calc.';
+            }
+            if (msg.includes('customer')) {
+                return 'Customers are managed in the Customers tab. Add new customers to keep records clean.';
+            }
+            if (msg.includes('user') || msg.includes('role')) {
+                return `Users can be created in Users. Current role header is ${REQUESTER_ROLE}.`;
+            }
+            if (msg.includes('help') || msg.includes('support')) {
+                return 'Open Help for quick fixes or Contact for support.';
+            }
+            if (msg.includes('contact')) {
+                return 'Use Contact to send a message with your issue. Include the alert text for faster response.';
+            }
+            return 'Try asking about products, orders, customers, users, or API setup.';
+        }
+
+        async function sendChat() {
+            const value = chatInput.value.trim();
+            if (!value) return;
+            appendChat(value, true);
+            chatInput.value = '';
+            if (!isOffline()) {
+                try {
+                    const response = await postJson(`${API_URL}/chatbot`, { message: value });
+                    appendChat(response.reply || botReply(value), false);
+                    return;
+                } catch (err) {
+                    // Fall back to local reply
+                }
+            }
+            appendChat(botReply(value), false);
+        }
+
+        function quickChat(text) {
+            chatInput.value = text;
+            sendChat();
+        }
+
+        document.getElementById('chatSend').addEventListener('click', sendChat);
+        document.getElementById('chatClear').addEventListener('click', () => {
+            chatWindow.innerHTML = '';
+            appendChat('Hello, I am your assistant. Ask about products, orders, or setup.', false);
+        });
+
+        chatInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendChat();
+            }
+        });
+
+        // Utility
+        function showAlert(elementId, message, type) {
+            const alert = document.getElementById(elementId);
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            setTimeout(() => alert.textContent = '', 5000);
+        }
+
+        // Close modals on outside click
+        window.onclick = function(event) {
+            ['productModal', 'customerModal', 'orderModal', 'userModal'].forEach(id => {
+                const modal = document.getElementById(id);
+                if (event.target == modal) modal.classList.remove('active');
+            });
+        };
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                ['productModal', 'customerModal', 'orderModal', 'userModal'].forEach(id => {
+                    const modal = document.getElementById(id);
+                    if (modal) modal.classList.remove('active');
+                });
+            }
+        });
+
+        // Initial load
+        appendChat('Hello, I am your assistant. Ask about products, orders, or setup.', false);
+        updateSettingsUi();
+        setApiStatus(!isOffline());
+        const homeSection = document.getElementById('home');
+        if (homeSection) applyReveal(homeSection);
+        loadHomeStats();
+    </script>
+</body>
+</html>
