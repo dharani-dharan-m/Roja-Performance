@@ -51,9 +51,11 @@ public class CustomerController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Customer> updateCustomer(@PathVariable Long id, @RequestBody Customer customer) {
+    public ResponseEntity<?> updateCustomer(@PathVariable Long id, @RequestBody Customer customer) {
         try {
             return ResponseEntity.ok(customerService.updateCustomer(id, customer));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

@@ -45,6 +45,10 @@ public class OtpService {
 
     public boolean isVerified(String email, String purpose, String verificationToken) {
         cleanupExpired();
+        if (email == null || email.isBlank() || purpose == null || purpose.isBlank()
+                || verificationToken == null || verificationToken.isBlank()) {
+            return false;
+        }
         VerifiedRecord record = verifiedStore.get(verificationToken);
         if (record == null) {
             return false;
@@ -63,6 +67,9 @@ public class OtpService {
     }
 
     private String key(String email, String purpose) {
+        if (email == null || email.isBlank() || purpose == null || purpose.isBlank()) {
+            throw new IllegalArgumentException("Email and OTP purpose are required");
+        }
         return email.trim().toLowerCase() + "|" + purpose.trim().toUpperCase();
     }
 

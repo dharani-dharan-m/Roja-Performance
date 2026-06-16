@@ -1,12 +1,6 @@
 package com.tyreshop.Roja.Performance.controller;
+import java.util.List;
 
-import com.tyreshop.Roja.Performance.dto.ApiResponse;
-import com.tyreshop.Roja.Performance.dto.TyreRequestDTO;
-import com.tyreshop.Roja.Performance.dto.TyreResponseDTO;
-import com.tyreshop.Roja.Performance.service.TyreService;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -20,8 +14,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.tyreshop.Roja.Performance.dto.ApiResponse;
+import com.tyreshop.Roja.Performance.dto.TyreRequestDTO;
+import com.tyreshop.Roja.Performance.dto.TyreResponseDTO;
+import com.tyreshop.Roja.Performance.service.TyreService;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 /**
  * TyreController - REST Controller for Tyre operations
  * Handles all HTTP requests related to tyres
@@ -35,9 +35,7 @@ import java.util.List;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TyreController {
-
     private final TyreService tyreService;
-
     /**
      * Create a new tyre
      * POST /api/v1/tyres
@@ -49,19 +47,15 @@ public class TyreController {
     public ResponseEntity<ApiResponse<TyreResponseDTO>> createTyre(
             @Valid @RequestBody TyreRequestDTO tyreRequestDTO) {
         log.info("CREATE Tyre - Brand: {}, Size: {}", tyreRequestDTO.getBrand(), tyreRequestDTO.getSize());
-        
         TyreResponseDTO createdTyre = tyreService.createTyre(tyreRequestDTO);
-        
         ApiResponse<TyreResponseDTO> response = ApiResponse.<TyreResponseDTO>builder()
                 .success(true)
                 .message("Tyre created successfully")
                 .data(createdTyre)
                 .timestamp(System.currentTimeMillis())
                 .build();
-        
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
-
     /**
      * Get tyre by ID
      * GET /api/v1/tyres/{id}
@@ -72,19 +66,15 @@ public class TyreController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<TyreResponseDTO>> getTyreById(@PathVariable Long id) {
         log.info("GET Tyre - ID: {}", id);
-        
         TyreResponseDTO tyre = tyreService.getTyreById(id);
-        
         ApiResponse<TyreResponseDTO> response = ApiResponse.<TyreResponseDTO>builder()
                 .success(true)
                 .message("Tyre retrieved successfully")
                 .data(tyre)
                 .timestamp(System.currentTimeMillis())
                 .build();
-        
         return ResponseEntity.ok(response);
     }
-
     /**
      * Get all tyres
      * GET /api/v1/tyres
@@ -233,6 +223,7 @@ public class TyreController {
     /**
      * Delete tyre
      * DELETE /api/v1/tyres/{id}
+     * DELETE operation returns 204 No Content status on successful deletion
      * 
      * @param id - Tyre ID
      * @return 204 No Content status

@@ -59,9 +59,11 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody Product product) {
+    public ResponseEntity<?> updateProduct(@PathVariable Long id, @Valid @RequestBody Product product) {
         try {
             return ResponseEntity.ok(productService.updateProduct(id, product));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

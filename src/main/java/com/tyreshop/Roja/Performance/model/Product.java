@@ -1,5 +1,4 @@
 package com.tyreshop.Roja.Performance.model;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -50,7 +49,6 @@ public class Product {
 
     private Long createdAt;
     private Long updatedAt;
-
     @PrePersist
     protected void onCreate() {
         createdAt = System.currentTimeMillis();
